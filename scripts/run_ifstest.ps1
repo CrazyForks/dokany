@@ -15,7 +15,14 @@ if (!(Test-Path $ifstest_exe)) {
 }
 
 #IFSTest does not return error for wrong param so we need to analyse stderr
-& $ifstest_exe $args 2>&1 | tee -Variable allOutput
+& $ifstest_exe $args 2>&1 | Tee-Object -Variable allOutput | ForEach-Object {
+    if ($_ -is [System.Management.Automation.ErrorRecord]) {
+        Write-Host $_.Exception.Message -ForegroundColor Red
+    }
+    else {
+        $_
+    }
+}
 $stderr = $allOutput | ?{ $_ -is [System.Management.Automation.ErrorRecord] }
 if ($stderr) {
    Write-Error "IFSTest printed error"
